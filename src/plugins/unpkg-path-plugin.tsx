@@ -1,5 +1,12 @@
 import * as esbuild from 'esbuild-wasm';
 import axios from 'axios';
+import localForage from 'localforage';
+
+const fileCache = localForage.createInstance({
+    name: 'filecache'
+});
+
+
 
 export const unpkgPathPlugin = () => {
   return {
@@ -7,6 +14,7 @@ export const unpkgPathPlugin = () => {
     setup(build: esbuild.PluginBuild) {
       build.onResolve({ filter: /.*/ }, async (args: any) => {
         console.log('onResolve', args);
+        
         if (args.path === 'index.js') {
             return { path: args.path, namespace: 'a' };
         }
@@ -38,7 +46,13 @@ export const unpkgPathPlugin = () => {
           };
         }
         
+        // Check to see if we have already fetched this file 
+        // and if it is in the cache 
+
+        // if it is, return it immediately
+
         const { data, request } = await axios.get(args.path);
+        // store response in cache
         return {
             loader: 'jsx',
             contents: data,
